@@ -1,0 +1,89 @@
+// C:\Users\Shiva\flowbit-analytics\apps\api\prisma\schema.prisma 
+
+generator client {
+  provider = "prisma-client-js" // Standard provider for Node.js
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") 
+}
+
+// --- CORE TABLES (Normalized from JSON) ---
+
+model Vendor {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  address   String?
+  taxId     String?
+  invoices  Invoice[]
+
+  @@map("vendors")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  address   String?
+  invoices  Invoice[]
+
+  @@map("customers")
+}
+
+model Document {
+  id        String   @id @default(uuid()) 
+  fileName  String   @map("file_name")
+  filePath  String?  @map("file_path")
+  fileSize  BigInt?  @map("file_size")
+  fileType  String?  @map("file_type")
+  status    String
+  createdAt DateTime @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @map("updated_at") @db.Timestamptz(3)
+  
+  invoice Invoice?
+
+  @@map("documents")
+}
+
+model Invoice {
+  id           String   @id @default(uuid()) 
+  documentId   String   @unique  @map("document_id") 
+  document     Document @relation(fields: [documentId], references: [id])
+
+  invoiceId    String   @map("invoice_id")
+  invoiceDate  DateTime @map("invoice_date") @db.Date 
+  deliveryDate DateTime? @map("delivery_date") @db.Date 
+  dueDate      DateTime? @map("due_date") @db.Date 
+  documentType String?  @map("document_type") 
+
+  currencySymbol String? @map("currency_symbol") @default("€")
+  subTotal     Float    @map("sub_total")
+  totalTax     Float    @map("total_tax")
+  invoiceTotal Float    @map("invoice_total")
+
+  vendorId     String   @map("vendor_id")
+  vendor       Vendor   @relation(fields: [vendorId], references: [id])
+  
+  customerId   String?  @map("customer_id")
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  
+  lineItems    LineItem[]
+
+  @@map("invoices")
+}
+
+model LineItem {
+  id           String @id @default(uuid())
+  invoiceId    String @map("invoice_id")
+  invoice      Invoice @relation(fields: [invoiceId], references: [id])
+
+  description  String
+  quantity     Float
+  unitPrice    Float  @map("unit_price")
+  totalPrice   Float  @map("total_price")
+  
+  sachkonto    String? @map("sachkonto")
+  buSchluessel String? @map("bu_schluessel")
+
+  @@map("line_items")
+}

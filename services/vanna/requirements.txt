@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+vanna
+groq
+psycopg[binary]
+psycopg2-binary
+python-dotenv
+chromadb<1.0.0
