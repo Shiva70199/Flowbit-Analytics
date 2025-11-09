@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Database, Code, Table2, Home, Users, ChevronDown as ChevronDownIcon } from 'lucide-react';
 import Link from 'next/link';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 interface Message {
     id: string;

@@ -4,7 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Search, ChevronDown, Upload, FileText, DollarSign, Users, TrendingUp, TrendingDown, Clock, Layers, Home, ChevronDown as ChevronDownIcon } from 'lucide-react';
 import Link from 'next/link';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 const CATEGORY_COLORS = ['#3B82F6', '#8B5CF6', '#F59E0B', '#10B981', '#EF4444', '#6B7280'];
 const parseFloatSafe = (value: any): number => {
