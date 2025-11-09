@@ -60,10 +60,10 @@ const OverviewCard = ({ title, value, delta, icon, color = 'blue' }: { title: st
     const isPositive = delta && (delta.includes('+') || (!delta.includes('-') && !delta.includes('less')));
     
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between min-h-[140px] hover:shadow-md transition-shadow">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between min-h-[140px] hover:shadow-md transition-all duration-200 hover:border-gray-200">
             <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-semibold text-gray-600">{title}</h3>
-                <div className={`p-2.5 rounded-lg ${
+                <h3 className="text-sm font-semibold text-gray-600 leading-tight">{title}</h3>
+                <div className={`p-2.5 rounded-lg shadow-sm ${
                     color === 'blue' ? 'bg-blue-50 text-blue-600' :
                     color === 'purple' ? 'bg-purple-50 text-purple-600' :
                     'bg-green-50 text-green-600'
@@ -72,7 +72,7 @@ const OverviewCard = ({ title, value, delta, icon, color = 'blue' }: { title: st
                 </div>
             </div>
             <div>
-                <p className="text-3xl font-bold text-gray-900 mb-2">{value}</p>
+                <p className="text-3xl font-bold text-gray-900 mb-2 leading-none">{value}</p>
                 <div className={`text-xs font-medium flex items-center gap-1 ${
                     isPositive ? 'text-green-600' : 'text-red-600'
                 }`}>
@@ -91,9 +91,11 @@ const LineChartCard = ({ trends, loading }: { trends: any[], loading: boolean })
     })), [trends]);
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-full xl:col-span-1">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Invoice Volume + Value Trend</h2>
-            <p className="text-sm text-gray-500 mb-6">Invoice count and total spend over 12 months.</p>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-full xl:col-span-1 hover:shadow-md transition-shadow">
+            <div className="mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Invoice Volume + Value Trend</h2>
+                <p className="text-sm text-gray-500">Invoice count and total spend over 12 months.</p>
+            </div>
 
             <div className="min-h-[300px] flex items-center justify-center">
                 {loading ? (
@@ -145,9 +147,11 @@ const VendorChartCard = ({ vendors, loading }: { vendors: any[], loading: boolea
     const maxSpend = chartData.length > 0 ? Math.ceil(Math.max(...chartData.map(v => v.spend)) / 5000) * 5000 : 10000;
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-full md:col-span-1">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Spend by Vendor (Top 10)</h2>
-            <p className="text-sm text-gray-500 mb-6">Vendor spend with cumulative percentage distribution.</p>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-full md:col-span-1 hover:shadow-md transition-shadow">
+            <div className="mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Spend by Vendor (Top 10)</h2>
+                <p className="text-sm text-gray-500">Vendor spend with cumulative percentage distribution.</p>
+            </div>
             <div className="min-h-[300px] flex items-center justify-center">
                 {loading ? (
                     <div className="text-center text-gray-500">Loading vendor data...</div>
@@ -185,9 +189,11 @@ const PieChartCard = ({ categories, loading }: { categories: any[], loading: boo
     const totalSpend = chartData.reduce((sum, item) => sum + item.value, 0);
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-full md:col-span-1">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Spend by Category</h2>
-            <p className="text-sm text-gray-500 mb-6">Distribution of spending across different categories.</p>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-full md:col-span-1 hover:shadow-md transition-shadow">
+            <div className="mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Spend by Category</h2>
+                <p className="text-sm text-gray-500">Distribution of spending across different categories.</p>
+            </div>
             
             <div className="flex flex-col sm:flex-row items-center justify-around h-64">
                 {loading ? (
@@ -252,9 +258,11 @@ const OutflowChartCard = ({ outflow, loading }: { outflow: any[], loading: boole
     const maxAmount = chartData.length > 0 ? Math.ceil(Math.max(...chartData.map(c => c.amount)) / 10000) * 10000 : 50000;
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-full md:col-span-1">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Cash Outflow Forecast</h2>
-            <p className="text-sm text-gray-500 mb-6">Expected payment obligations grouped by due date ranges.</p>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-full md:col-span-1 hover:shadow-md transition-shadow">
+            <div className="mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Cash Outflow Forecast</h2>
+                <p className="text-sm text-gray-500">Expected payment obligations grouped by due date ranges.</p>
+            </div>
             
             <div className="min-h-[300px] flex items-center justify-center">
                 {loading ? (
@@ -299,9 +307,11 @@ const InvoicesTable = ({ invoices, loading }: { invoices: any[], loading: boolea
     }, [invoices, searchTerm]);
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-full">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Invoices by Vendor</h2>
-            <p className="text-sm text-gray-500 mb-6">Top vendors by invoice count and net value.</p>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 col-span-full hover:shadow-md transition-shadow">
+            <div className="mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Invoices by Vendor</h2>
+                <p className="text-sm text-gray-500">Top vendors by invoice count and net value.</p>
+            </div>
             <div className="relative mb-6">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -309,11 +319,11 @@ const InvoicesTable = ({ invoices, loading }: { invoices: any[], loading: boolea
                     placeholder="Search by Vendor or Invoice"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full p-3 pl-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 bg-gray-50"
+                    className="w-full p-3 pl-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 bg-gray-50 placeholder:text-gray-400"
                 />
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
@@ -327,19 +337,19 @@ const InvoicesTable = ({ invoices, loading }: { invoices: any[], loading: boolea
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {loading ? (
-                            <tr><td colSpan={6} className="text-center py-4 text-gray-500">Loading invoices...</td></tr>
+                            <tr><td colSpan={6} className="text-center py-8 text-gray-500">Loading invoices...</td></tr>
                         ) : filteredInvoices.length === 0 ? (
-                            <tr><td colSpan={6} className="text-center py-4 text-gray-500">No invoices match your search.</td></tr>
+                            <tr><td colSpan={6} className="text-center py-8 text-gray-500">No invoices match your search.</td></tr>
                         ) : (
                             filteredInvoices.map((inv: any, index: number) => (
-                                <tr key={index} className="hover:bg-gray-50">
+                                <tr key={index} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">{inv.vendor}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{inv.date}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-flow-blue font-mono">{inv.id}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-mono">{inv.id}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">{inv.netValue}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{inv.dueDate}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                             inv.status.includes('Credit') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
                                         }`}>
                                             {inv.status}
@@ -387,41 +397,43 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-gray-50 flex" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-            <div className="w-64 bg-white p-6 border-r border-gray-200 hidden lg:flex flex-col">
+            <aside className="w-64 bg-white p-6 border-r border-gray-200 hidden lg:flex flex-col fixed h-screen">
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
                             A
                         </div>
-                        <div>
-                            <div className="text-gray-900 font-semibold">Analytics</div>
+                        <div className="flex-1">
+                            <div className="text-gray-900 font-semibold text-base">Analytics</div>
                         </div>
-                        <ChevronDownIcon className="w-4 h-4 text-gray-400 ml-auto" />
+                        <ChevronDownIcon className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors" />
                     </div>
                 </div>
 
                 <div className="mb-8 flex-1">
                     <nav className="space-y-1">
-                        <Link href="/chat" className="flex items-center p-2.5 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                            <Users className="w-4 h-4 mr-3" /> Chat with Data
+                        <Link href="/chat" className="flex items-center p-2.5 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors group">
+                            <Users className="w-4 h-4 mr-3 text-gray-500 group-hover:text-blue-600" /> 
+                            <span className="font-medium">Chat with Data</span>
                         </Link>
-                        <Link href="/" className="flex items-center p-2.5 rounded-lg bg-blue-50 text-blue-600 font-medium">
-                            <Home className="w-4 h-4 mr-3" /> Dashboard
+                        <Link href="/" className="flex items-center p-2.5 rounded-lg bg-blue-50 text-blue-600 font-medium shadow-sm">
+                            <Home className="w-4 h-4 mr-3" /> 
+                            <span>Dashboard</span>
                         </Link>
                     </nav>
                 </div>
 
                 <div className="mt-auto pt-6 border-t border-gray-200">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
                             <span className="text-white font-bold text-xs">F</span>
                         </div>
                         <span className="text-gray-900 font-bold text-sm">Flowbit AI</span>
                     </div>
                 </div>
-            </div>
+            </aside>
 
-            <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+            <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 overflow-y-auto">
                 <header className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-extrabold text-gray-900">Dashboard</h1>
                     <div className="flex items-center gap-3">
@@ -429,16 +441,16 @@ export default function Dashboard() {
                             <p className="text-sm font-semibold text-gray-900">Shiva</p>
                             <p className="text-xs text-gray-500">Admin</p>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm shadow-sm">
                             S
                         </div>
                     </div>
                 </header>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     {loadingStats ? (
                          [1, 2, 3, 4].map(i => (
-                            <div key={i} className="bg-white p-6 rounded-lg shadow-md h-36 animate-pulse">
+                            <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-36 animate-pulse">
                                 <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
                                 <div className="h-8 bg-gray-300 rounded w-1/2 mb-2"></div>
                                 <div className="h-3 bg-gray-200 rounded w-1/4"></div>
@@ -449,17 +461,19 @@ export default function Dashboard() {
                             <OverviewCard key={index} {...card} />
                         ))
                     )}
-                </div>
+                </section>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <LineChartCard trends={trends} loading={loadingTrends} />
                     <VendorChartCard vendors={topVendors} loading={loadingVendors} />
                     <PieChartCard categories={categories} loading={loadingCategories} />
                     <OutflowChartCard outflow={outflow} loading={loadingOutflow} />
-                </div>
+                </section>
 
-                <InvoicesTable invoices={invoices} loading={loadingInvoices} />
-            </div>
+                <section>
+                    <InvoicesTable invoices={invoices} loading={loadingInvoices} />
+                </section>
+            </main>
         </div>
     );
 }
