@@ -1,0 +1,63 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres_user:my_strong_password@localhost:5432/flowbit_db"
+}
+
+model customers {
+  id       String     @id
+  name     String     @unique
+  address  String?
+  invoices invoices[]
+}
+
+model documents {
+  id         String    @id
+  file_name  String
+  file_path  String?
+  file_size  BigInt?
+  file_type  String?
+  status     String
+  created_at DateTime  @db.Timestamptz(3)
+  updated_at DateTime  @db.Timestamptz(3)
+  invoices   invoices?
+}
+
+model invoices {
+  id              String       @id
+  document_id     String       @unique
+  invoice_id      String
+  invoice_date    DateTime     @db.Date
+  delivery_date   DateTime?    @db.Date
+  due_date        DateTime?    @db.Date
+  document_type   String?
+  currency_symbol String?      @default("€")
+  sub_total       Float
+  total_tax       Float
+  invoice_total   Float
+  vendor_id       String
+  customer_id     String?
+  customers       customers?   @relation(fields: [customer_id], references: [id])
+  documents       documents    @relation(fields: [document_id], references: [id])
+  vendors         vendors      @relation(fields: [vendor_id], references: [id])
+  line_items      line_items[]
+}
+
+model line_items {
+  id            String   @id
+  invoice_id    String
+  description   String
+  quantity      Float
+  unit_price    Float
+  total_price   Float
+  sachkonto     String?
+  bu_schluessel String?
+  invoices      invoices @relation(fields: [invoice_id], references: [id])
+}
+
+model vendors {
+  id       String     @id
+  name     String     @unique
+  address  String?
+  taxId    String?
+  invoices invoices[]
+}

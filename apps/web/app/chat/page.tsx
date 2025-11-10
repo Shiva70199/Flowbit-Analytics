@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Database, Code, Table2, Home, Users, ChevronDown as ChevronDownIcon } from 'lucide-react';
 import Link from 'next/link';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
 
 interface Message {
     id: string;
@@ -43,7 +43,7 @@ export default function ChatWithDataPage() {
         setLoading(true);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/chat-with-data`, {
+            const response = await fetch('/api/chat-with-data', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

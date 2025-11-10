@@ -4,7 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Search, ChevronDown, Upload, FileText, DollarSign, Users, TrendingUp, TrendingDown, Clock, Layers, Home, ChevronDown as ChevronDownIcon } from 'lucide-react';
 import Link from 'next/link';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
 
 const CATEGORY_COLORS = ['#3B82F6', '#8B5CF6', '#F59E0B', '#10B981', '#EF4444', '#6B7280'];
 const parseFloatSafe = (value: any): number => {
@@ -37,9 +37,11 @@ const useApiData = (endpoint: string, initialData: any = null) => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                const apiPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+                const response = await fetch(`/api${apiPath}`);
                 if (!response.ok) {
-                    throw new Error(`Failed to fetch ${endpoint}: ${response.statusText}`);
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || errorData.error || `Failed to fetch ${endpoint}: ${response.statusText}`);
                 }
                 const result = await response.json();
                 setData(result);
