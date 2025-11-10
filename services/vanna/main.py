@@ -1,47 +1,20 @@
+from typing import Any, List, Dict
+import logging
+import traceback
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-import os
-import vanna as vn
-from groq_chat import LocalContext_Groq
-from dotenv import load_dotenv
-import pathlib
 import pandas as pd
-import psycopg
 
-load_dotenv(dotenv_path=pathlib.Path(__file__).parent.parent.parent / 'apps' / 'api' / '.env')
-
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-vanna_model_name = 'flowbit_vanna_model'
-DB_USER = os.getenv("DB_USER", "postgres_user")
-DB_PASS = os.getenv("DB_PASSWORD", "my_strong_password")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = int(os.getenv("DB_PORT", "5432"))
-DB_NAME = os.getenv("DB_NAME", "flowbit_db")
-
-vn = LocalContext_Groq(config={
-    'api_key': GROQ_API_KEY,
-    'model': 'llama-3.1-8b-instant',
-    'path': f'{vanna_model_name}.sqlite'
-})
-
-try:
-    print("Connecting Vanna to PostgreSQL...")
-    vn.connect_to_postgres(
-        host=DB_HOST,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASS,
-        port=DB_PORT
-    )
-    print(f"✓ Vanna connected to PostgreSQL at {DB_HOST}:{DB_NAME}")
-except Exception as e:
-    print(f"⚠ Warning: Could not connect to PostgreSQL: {e}")
-    print("Vanna will still start but SQL execution will fail until database is connected.")
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(
     title="Flowbit Vanna AI API",
     description="Backend service for natural language to SQL analytics.",
+    version="1.0.0",
 )
 
 app.add_middleware(
@@ -55,34 +28,93 @@ app.add_middleware(
 class QueryRequest(BaseModel):
     query: str
 
+
 class QueryResponse(BaseModel):
     sql: str
-    results: list
+    results: List[Dict[str, Any]]
     message: str
+
+# Vanna client will be initialized on startup to avoid import-time failures on Render
+vn: Any = None
+vanna_model_name: str | None = None
+
+
+@app.on_event("startup")
+async def startup_event():
+    global vn, vanna_model_name
+    try:
+        # Import inside startup so heavy imports (vanna, groq, DB clients) don't run at module import
+        from .vanna_setup import initialize_vanna, vanna_model_name as _vn_name
+
+        result = initialize_vanna()
+        if isinstance(result, tuple):
+            vn, maybe_name = result
+            vanna_model_name = maybe_name or _vn_name
+        else:
+            vn = result
+            vanna_model_name = _vn_name
+
+        logger.info("Vanna initialized on startup. model=%s", vanna_model_name)
+    except Exception as e:
+        logger.exception("Failed to initialize Vanna on startup: %s", e)
+        # keep service up; endpoints will return 503 until vn is ready
+
 
 @app.post("/vanna/ask", response_model=QueryResponse)
 async def ask_vanna(request: QueryRequest):
+    if vn is None:
+        raise HTTPException(status_code=503, detail="Service initializing or database not connected")
+
     try:
-        sql_query = vn.generate_sql(request.query, auto_train=True)
+        # Generate SQL from natural language
+        if hasattr(vn, "generate_sql"):
+            sql_query = vn.generate_sql(request.query, auto_train=True)
+        elif hasattr(vn, "nl_to_sql"):
+            sql_query = vn.nl_to_sql(request.query)
+        else:
+            raise RuntimeError("Vanna client does not expose a SQL generation method")
 
         if not sql_query:
             return QueryResponse(sql="", results=[], message="Vanna could not generate a SQL query for that question.")
 
-        results_df: pd.DataFrame = vn.run_sql(sql_query)
-        results_list = results_df.to_dict('records')
+        # Execute SQL
+        if hasattr(vn, "run_sql"):
+            results = vn.run_sql(sql_query)
+        elif hasattr(vn, "execute_sql"):
+            results = vn.execute_sql(sql_query)
+        else:
+            raise RuntimeError("Vanna client does not expose a SQL execution method")
 
-        return QueryResponse(
-            sql=sql_query,
-            results=results_list,
-            message="Query successful"
-        )
+        # normalize results to list[dict]
+        if isinstance(results, pd.DataFrame):
+            results_list = results.to_dict("records")
+        elif isinstance(results, list):
+            results_list = results
+        else:
+            try:
+                results_list = list(results)
+            except Exception:
+                results_list = [{"result": str(results)}]
+
+        return QueryResponse(sql=sql_query, results=results_list, message="Query successful")
     except Exception as e:
-        import traceback
-        error_trace = traceback.format_exc()
-        print(f"Error during Vanna processing: {e}")
-        print(f"Full traceback:\n{error_trace}")
-        raise HTTPException(status_code=500, detail=f"Vanna execution error: {str(e)}")
+        logger.error("Error processing query: %s\n%s", e, traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/status")
 async def get_status():
-    return {"status": "Vanna AI Service Operational", "model": vanna_model_name}
+    try:
+        return JSONResponse({
+            "status": "operational" if vn is not None else "initializing",
+            "model": vanna_model_name or "unknown",
+        })
+    except Exception as e:
+        logger.error("Health check error: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# lightweight root endpoint
+@app.get("/")
+async def root():
+    return {"service": "flowbit-vanna", "status": "ok", "model": vanna_model_name or "unknown"}
