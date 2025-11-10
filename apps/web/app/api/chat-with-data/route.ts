@@ -1,18 +1,11 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
-  const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
-  
-  if (!apiUrl) {
-    return Response.json(
-      { 
-        error: 'Backend API not configured', 
-        message: 'Please deploy the backend API and set API_URL environment variable' 
-      },
-      { status: 503 }
-    );
-  }
-  
   try {
-    const body = await request.json();
+    const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    
+    const body = await request.json().catch(() => ({}));
     const { query } = body;
     
     if (!query) {
@@ -22,25 +15,36 @@ export async function POST(request: Request) {
       );
     }
     
-    const response = await fetch(`${apiUrl}/chat-with-data`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query }),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
     
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || errorData.message || `API responded with status ${response.status}`);
+    try {
+      const response = await fetch(`${apiUrl}/chat-with-data`, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query }),
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.message || `API responded with status ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return Response.json(data);
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      throw fetchError;
     }
-    
-    const data = await response.json();
-    return Response.json(data);
   } catch (error: any) {
     console.error('Error in chat-with-data:', error);
     return Response.json(
-      { error: 'Failed to process query', message: error.message },
+      { error: 'Failed to process query', message: error.message || 'An error occurred' },
       { status: 500 }
     );
   }

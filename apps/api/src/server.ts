@@ -8,7 +8,7 @@ dotenv.config();
 
 const prisma = new PrismaClient();
 const app = express();
-const port = 3001;
+const port = parseInt(process.env.PORT || '3001', 10);
 
 app.use(cors({
     origin: '*',
@@ -262,6 +262,10 @@ app.post('/chat-with-data', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-  console.log(`Flowbit Analytics API running on http://localhost:${port}`);
-});
+if (process.env.VERCEL !== '1') {
+  app.listen(port, () => {
+    console.log(`Flowbit Analytics API running on http://localhost:${port}`);
+  });
+}
+
+export default app;
