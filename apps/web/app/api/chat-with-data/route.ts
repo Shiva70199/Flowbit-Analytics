@@ -1,5 +1,15 @@
 export async function POST(request: Request) {
-  const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
+  
+  if (!apiUrl) {
+    return Response.json(
+      { 
+        error: 'Backend API not configured', 
+        message: 'Please deploy the backend API and set API_URL environment variable' 
+      },
+      { status: 503 }
+    );
+  }
   
   try {
     const body = await request.json();
